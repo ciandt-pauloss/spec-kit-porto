@@ -1,0 +1,78 @@
+# Configuração da integração Jira — copie para porto-config.yml e ajuste
+
+# Servidor MCP (deve expor ferramentas de transição: jira_get_transitions, jira_transition_issue)
+mcp_server: "mcp-atlassian"
+
+# Projeto Jira
+project:
+  key: "PROJ"
+
+# Hierarquia de issues
+hierarchy:
+  epic_type: "Epic"
+  story_type: "Story"
+  task_type: "Sub-task"   # "" ou "none" para modo 2-level (Epic → Stories apenas)
+  relationships:
+    epic_story: "Epic Link"
+    story_task: "Parent"
+    epic_task: "Epic Link"
+
+# Labels padrão por nível
+defaults:
+  epic:
+    labels: ["SDD"]
+    custom_fields: {}
+  story:
+    labels: ["SDD"]
+    custom_fields: {}
+  task:
+    labels: []
+    custom_fields: {}
+
+# Mapeamento de campos customizados (descobertos via /speckit.jira.discover-fields)
+field_mappings: {}
+
+# Workflow customizado — coração desta extensão
+workflow:
+  # Sequência de transições executada após criar cada Story (Backlog → Ready To Dev)
+  story_creation_transitions:
+    - "Refiner"
+    - "Tec Refiner"
+    - "Ready To Dev"
+
+  # Se a transição direta não existir, navegar pela sequência disponível
+  fallback_to_sequence: true
+
+# Mapeamento de status por checkbox — separado por tipo de issue
+# Os comandos sync-status e sync-task consultam o bloco correto conforme o tipo da issue no jira-mapping.json
+status_mapping:
+  story:
+    completed: "Deploy"        # [x] — story concluída, aguardando revisão
+    in_progress: "In Progress" # [~]
+    pending: "Ready To Dev"    # [ ] — sem transição
+
+  task:                        # aplica-se a Sub-task e Task
+    completed: "Deploy"        # [x] — não vai para Done diretamente
+    in_progress: "In Progress" # [~]
+    pending: "Ready To Dev"    # [ ] — sem transição
+
+# Configuração da matriz de dependências (speckit.porto.dependencies)
+dependencies:
+  # Verticais/departamentos conhecidos da Porto — usados como sugestão de
+  # padronização ao classificar cada dependência identificada no spec.md.
+  # Uma vertical fora desta lista não é rejeitada, apenas sinalizada como nova.
+  known_verticals: []
+  # Gera dependencies.xlsx além do dependencies.md (requer apenas python3, sem
+  # dependências externas)
+  generate_xlsx: true
+
+# Configuração do Epic (speckit.porto.epic)
+epic:
+  labels: ["SDD"]
+  custom_fields: {}
+
+# Configuração da POC de frontend (speckit.porto.poc)
+poc:
+  # Diretório de saída, relativo à raiz do repositório — "{spec_name}" é
+  # substituído pelo nome da spec
+  output_dir: "poc/{spec_name}"

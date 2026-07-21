@@ -1,0 +1,86 @@
+schema_version: "1.0"
+
+extension:
+  id: "porto"
+  name: "Porto Jira Integration"
+  version: "1.0.0"
+  description: "Integração Jira customizada para porto: stories ricas, workflow próprio e sync granular"
+  author: "Paulo Henrique"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.1.0"
+
+provides:
+  commands:
+    - name: "speckit.porto.dependencies"
+      file: "commands/dependencies.md"
+      description: "Analisa spec.md e gera a matriz de dependências externas (times, APIs, infra, componentes) em dependencies.md + dependencies.xlsx"
+
+    - name: "speckit.porto.epic"
+      file: "commands/epic.md"
+      description: "Cria ou atualiza o Epic no Jira a partir do spec.md, aplicando boas práticas de escrita de épicos"
+
+    - name: "speckit.porto.poc"
+      file: "commands/poc.md"
+      description: "Gera um protótipo de frontend a partir do spec.md para validar o fluxo da história antes do plan"
+
+    - name: "speckit.porto.specstoissues"
+      file: "commands/specstoissues.md"
+      description: "Cria hierarquia Jira com ACs do spec.md e transiciona stories para Ready To Dev"
+      aliases: ["speckit.specstoissues"]
+
+    - name: "speckit.porto.sync-status"
+      file: "commands/sync-status.md"
+      description: "Sincroniza status de todas as tasks para o workflow do Jira"
+      aliases: ["speckit.jira.sync-status"]
+
+    - name: "speckit.porto.sync-task"
+      file: "commands/sync-task.md"
+      description: "Sincroniza uma task específica por ID durante o implement"
+
+  config:
+    - name: "porto-config.yml"
+      template: "porto-config.template.yml"
+      description: "Configuração da integração Jira com workflow customizado"
+      required: true
+
+hooks:
+  # Um único comando por evento por extensão — os três novos comandos "pré-plan"
+  # são distribuídos em eventos distintos do ciclo de vida (todos entre o
+  # specify e o plan). Quem quiser rodar mais de um pode fazê-lo manualmente.
+  after_specify:
+    command: "speckit.porto.dependencies"
+    optional: true
+    prompt: "Gerar matriz de dependências (dependencies.md + dependencies.xlsx) a partir do spec.md?"
+    description: "Mapeia dependências externas logo após a especificação"
+
+  after_clarify:
+    command: "speckit.porto.epic"
+    optional: true
+    prompt: "Criar/atualizar o Epic no Jira a partir do spec.md?"
+    description: "Materializa o Epic no Jira após a clarificação da spec"
+
+  before_plan:
+    command: "speckit.porto.poc"
+    optional: true
+    prompt: "Gerar POC de frontend para validar o fluxo da história antes do plan?"
+    description: "Protótipo navegável para validação de UX antes do plan"
+
+  after_tasks:
+    command: "speckit.porto.specstoissues"
+    optional: true
+    prompt: "Criar issues no Jira com detalhes completos e transicionar stories para Ready To Dev?"
+    description: "Cria hierarquia Jira após geração de tasks"
+
+  after_implement:
+    command: "speckit.porto.sync-status"
+    optional: true
+    prompt: "Sincronizar status das tasks implementadas para o Jira?"
+    description: "Sync de status após sessão de implement"
+
+tags:
+  - "jira"
+  - "atlassian"
+  - "issue-tracking"
+  - "porto"
