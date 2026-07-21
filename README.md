@@ -1,7 +1,17 @@
-# porto — Extensão SpecKit para Jira
+# Spec-Kit Porto — Extensão SpecKit para Porto
 
-Integração Jira customizada para o projetos da Porto. Substitui a extensão comunitária
-`spec-kit-jira` com stories ricas, workflow próprio e sync granular de tasks.
+Integração Jira customizada para os projetos da Porto, com stories ricas, workflow
+próprio e sync granular de tasks.
+
+## Por que essa extensão existe
+
+O fluxo de trabalho da Porto no Jira tem particularidades que uma integração genérica
+não cobre: workflow com 14 status (do Backlog ao Pronto, passando por refinamento
+técnico, homologação e implantação), necessidade de mapear dependências externas
+antes do planejamento técnico e stories que precisam nascer com contexto completo
+(critérios de aceite INVEST, regras de negócio, Definition of Done) para reduzir
+idas e vindas no refinamento. Esta extensão automatiza esse fluxo ponta a ponta,
+sincronizando o progresso do `tasks.md` com o board real durante o `implement`.
 
 ## O que resolve
 
@@ -56,6 +66,29 @@ cp .specify/extensions/porto/porto-config.template.yml \
 ```
 
 Edite `porto-config.yml` com as chaves do seu projeto e workflow.
+
+## Fluxo completo (end-to-end)
+
+Os comandos desta extensão se encaixam no ciclo de vida padrão do Spec Kit
+(`specify` → `clarify` → `plan` → `tasks` → `implement`). A tabela abaixo mostra a
+ordem em que tudo roda, do primeiro rascunho da spec até o sync final de status:
+
+| Ordem | Etapa do Spec Kit | Comando desta extensão | Hook | Resultado |
+|---|---|---|---|---|
+| 1 | `speckit.specify` | — | — | `spec.md` criado |
+| 2 | — | `speckit.porto.dependencies` | `after_specify` | `dependencies.md` + `dependencies.xlsx` |
+| 3 | `speckit.clarify` | — | — | `spec.md` sem ambiguidades |
+| 4 | — | `speckit.porto.epic` | `after_clarify` | Epic criado/atualizado no Jira |
+| 5 | `speckit.plan` (antes) | `speckit.porto.poc` | `before_plan` | protótipo navegável em `poc/` |
+| 6 | `speckit.plan` | — | — | `plan.md`, `research.md` |
+| 7 | `speckit.tasks` | — | — | `tasks.md` |
+| 8 | — | `speckit.porto.specstoissues` | `after_tasks` | Stories + Sub-tasks no Jira, `jira-mapping.json` |
+| 9 | `speckit.implement` | `speckit.porto.sync-task` | manual, por task | sync individual conforme cada task avança |
+| 10 | — | `speckit.porto.sync-status` | `after_implement` | sync em lote de todas as tasks pendentes |
+
+Os passos 2, 4, 5 e 8 rodam via hook (todos `optional: true`, com confirmação do
+usuário); o passo 9 é o único pensado para execução manual e repetida durante o
+`implement`, dando visibilidade contínua sem esperar o fim da sessão.
 
 ## Comandos
 
