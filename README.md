@@ -3,6 +3,25 @@
 Integração Jira customizada para os projetos da Porto, com stories ricas, workflow
 próprio e sync granular de tasks.
 
+## Instalação
+
+```bash
+specify extension add porto <github-tag-version-zip-url>
+```
+
+- `porto` é o nome da extensão.
+- `<github-tag-version-zip-url>` é a URL do zip de uma tag/release deste
+  repositório, no formato `https://github.com/<org>/spec-kit-porto/archive/refs/tags/<versão>.zip`
+  (ex: `https://github.com/ciandt-pauloss/spec-kit-porto/archive/refs/tags/v1.0.0.zip`).
+
+Para desenvolvimento local, use `--dev` apontando para o diretório do repositório —
+isso cria um symlink e alterações nos arquivos da extensão são refletidas
+imediatamente, sem precisar gerar uma nova tag:
+
+```bash
+specify extension add --dev /caminho/para/spec-kit-porto
+```
+
 ## Por que essa extensão existe
 
 O fluxo de trabalho da Porto no Jira tem particularidades que uma integração genérica
@@ -43,18 +62,6 @@ spec-kit-porto/
     └── python/
         └── generate_dependencies_xlsx.py  # Gera dependencies.xlsx (sem dependências externas)
 ```
-
-## Instalação
-
-```bash
-# A partir do diretório do repositório central-specs
-specify extension add --dev /caminho/para/spec-kit-porto
-
-# Remover a extensão jira comunitária (não será mais necessária)
-specify extension remove jira
-```
-
-O `--dev` cria um symlink — alterações nos arquivos da extensão são refletidas imediatamente.
 
 ## Configuração
 
