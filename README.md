@@ -6,13 +6,13 @@ próprio e sync granular de tasks.
 ## Instalação
 
 ```bash
-specify extension add porto <github-tag-version-zip-url>
+specify extension add porto https://github.com/ciandt-pauloss/spec-kit-porto/archive/refs/tags/v1.0.0.zip
 ```
 
 - `porto` é o nome da extensão.
-- `<github-tag-version-zip-url>` é a URL do zip de uma tag/release deste
-  repositório, no formato `https://github.com/<org>/spec-kit-porto/archive/refs/tags/<versão>.zip`
-  (ex: `https://github.com/ciandt-pauloss/spec-kit-porto/archive/refs/tags/v1.0.0.zip`).
+- A URL aponta para o zip da tag/release desta extensão, no formato
+  `https://github.com/<org>/spec-kit-porto/archive/refs/tags/<versão>.zip`. Ao
+  atualizar para uma nova versão, troque `v1.0.0` pela tag correspondente.
 
 Para desenvolvimento local, use `--dev` apontando para o diretório do repositório —
 isso cria um symlink e alterações nos arquivos da extensão são refletidas
