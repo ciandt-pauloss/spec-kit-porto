@@ -26,8 +26,9 @@ $ARGUMENTS
 
 Aceita:
 - `--epic <KEY>` — atualiza um epic já existente (ex: `--epic CMEI-100`)
-- `--project <KEY>` — cria em um projeto Jira específico (padrão: `project.key` da
-  config, usado quando `--epic` não é informado)
+- `--project <KEY>` — cria em um projeto Jira específico, usado quando `--epic` não
+  é informado (ver passo 2.1 para como a key é resolvida quando esta flag está
+  ausente)
 - `--spec <nome>` — spec opcional (auto-detectado se não informado)
 
 ## Steps
@@ -37,7 +38,7 @@ Aceita:
 Detectar spec na mesma ordem dos demais comandos da extensão. Carregar
 `.specify/extensions/porto/porto-config.yml`. Extrair:
 - `mcp_server`
-- `project.key`
+- `project.keys` (lista de uma ou mais project keys)
 - `hierarchy.epic_type` (ex: "Epic")
 - `epic.labels` e `epic.custom_fields` (seção `epic:` da config; se ausente, usar
   `defaults.epic.labels`/`defaults.epic.custom_fields` como fallback)
@@ -47,6 +48,19 @@ Detectar spec na mesma ordem dos demais comandos da extensão. Carregar
 Extrair `--epic`, `--project` e `--spec` de `$ARGUMENTS`. Se ambos `--epic` e
 `--project` forem informados, priorizar `--epic` (atualização) e avisar que
 `--project` foi ignorado.
+
+### 2.1. Resolver a project key (apenas quando `--epic` não foi informado)
+
+Quando o Epic será criado do zero, resolver `project_key` nesta ordem:
+
+1. `--project <KEY>` informado → usar diretamente, sem validar contra
+   `project.keys` (permite criar em um projeto fora da lista configurada).
+2. `project.keys` da config tem exatamente 1 item → usar essa key, sem perguntar.
+3. `project.keys` tem mais de 1 item → perguntar ao usuário qual key utilizar,
+   listando as opções configuradas (ex: "Em qual projeto Jira criar o Epic?
+   [CMEI, TES]"). Não assumir a primeira da lista.
+4. `project.keys` ausente ou vazio → exibir erro pedindo para configurar
+   `project.keys` em `porto-config.yml` e encerrar.
 
 ### 3. Ler spec.md e montar o conteúdo do épico
 
@@ -81,7 +95,7 @@ spec.md (não deixar o placeholder do template no resultado final).
 **Caso contrário (criar novo):**
 
 1. `jira_create_issue`:
-   - `project_key`: `--project` informado, ou `project.key` da config
+   - `project_key`: resolvido no passo 2.1
    - `issue_type`: `hierarchy.epic_type`
    - `summary`: título do spec.md
    - `description`: conteúdo renderizado no passo 4

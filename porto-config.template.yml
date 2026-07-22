@@ -3,9 +3,12 @@
 # Servidor MCP (deve expor ferramentas de transição: jira_get_transitions, jira_transition_issue)
 mcp_server: "mcp-atlassian"
 
-# Projeto Jira
+# Projeto(s) Jira
+# Uma única key: é sempre usada, sem perguntar nada.
+# Múltiplas keys: se o comando não receber --project nem puder herdar a key de um
+# Epic já existente no jira-mapping.json, o usuário é perguntado qual utilizar.
 project:
-  key: "PROJ"
+  keys: ["PROJ"]
 
 # Hierarquia de issues
 hierarchy:

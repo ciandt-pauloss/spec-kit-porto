@@ -6,7 +6,7 @@ próprio e sync granular de tasks.
 ## Instalação
 
 ```bash
-specify extension add porto https://github.com/ciandt-pauloss/spec-kit-porto/archive/refs/tags/v1.0.0.zip
+specify extension add porto --from https://github.com/ciandt-pauloss/spec-kit-porto/archive/refs/tags/v1.0.0.zip
 ```
 
 - `porto` é o nome da extensão.
@@ -74,6 +74,26 @@ cp .specify/extensions/porto/porto-config.template.yml \
 
 Edite `porto-config.yml` com as chaves do seu projeto e workflow.
 
+`project.keys` aceita uma ou mais project keys do Jira:
+
+```yaml
+project:
+  keys: ["CMEI"]          # projeto único — sempre usado, sem perguntar nada
+  # keys: ["CMEI", "TES"] # múltiplos projetos — ver resolução abaixo
+```
+
+Quando há mais de uma key configurada, `speckit.porto.epic` e
+`speckit.porto.specstoissues` resolvem qual usar nesta ordem:
+
+1. `--project <KEY>` informado explicitamente na chamada do comando
+2. Epic já existente em `jira-mapping.json` (a key é derivada do prefixo do Epic
+   reaproveitado)
+3. Pergunta ao usuário qual das keys configuradas utilizar
+
+Os demais comandos (`sync-status`, `sync-task`, `dependencies`, `poc`) não
+precisam resolver a project key — operam sobre issues já mapeadas em
+`jira-mapping.json`.
+
 ## Fluxo completo (end-to-end)
 
 Os comandos desta extensão se encaixam no ciclo de vida padrão do Spec Kit
@@ -134,8 +154,8 @@ práticas de escrita de épicos (`templates/epic-template.md`). Diferente do
 com stakeholders antes do plan e das tasks existirem.
 
 ```bash
-speckit run speckit.porto.epic                        # cria novo Epic
-speckit run speckit.porto.epic --project CMEI          # cria em um projeto específico
+speckit run speckit.porto.epic                        # cria novo Epic (pergunta a project key se houver mais de uma configurada)
+speckit run speckit.porto.epic --project CMEI          # cria em um projeto específico, sem perguntar
 speckit run speckit.porto.epic --epic CMEI-100         # atualiza um Epic existente
 ```
 
@@ -171,6 +191,7 @@ Cria a hierarquia Epic → Stories → Sub-tasks no Jira a partir do `spec.md` e
 ```bash
 speckit run speckit.porto.specstoissues
 speckit run speckit.porto.specstoissues --spec meu-spec
+speckit run speckit.porto.specstoissues --project CMEI   # cria em um projeto específico, sem perguntar
 ```
 
 **Alias:** `speckit.specstoissues`

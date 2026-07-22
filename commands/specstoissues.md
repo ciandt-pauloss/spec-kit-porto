@@ -27,7 +27,11 @@ a sequência de transições configurada em `workflow.story_creation_transitions
 
 $ARGUMENTS
 
-Aceita argumento opcional `--spec <nome>` para especificar qual spec usar.
+Aceita:
+- `--spec <nome>` — spec opcional (auto-detectado se não informado)
+- `--project <KEY>` — cria a hierarquia em um projeto Jira específico, usado
+  apenas quando um novo Epic será criado (ver passo 5 para como a key é
+  resolvida quando esta flag está ausente)
 
 ## Steps
 
@@ -44,11 +48,13 @@ exibir erro informando o caminho esperado e encerrar.
 
 Extrair as variáveis:
 - `mcp_server` (ex: "mcp-atlassian")
-- `project.key` (ex: "CMEI")
+- `project.keys` (lista de uma ou mais project keys)
 - `hierarchy.*` (tipos de issue e relacionamentos)
 - `defaults.*` (labels por nível)
 - `workflow.story_creation_transitions` (sequência de transições)
 - `workflow.fallback_to_sequence`
+
+Extrair `--project <KEY>` de `$ARGUMENTS`, se informado.
 
 ### 2. Parse do spec.md extraindo User Stories completas
 
@@ -109,10 +115,25 @@ Se o usuário escolher Abortar, encerrar imediatamente.
 **Reaproveitar Epic existente**: se `jira-mapping.json` já existir e contiver
 `epic.key` (por exemplo, criado previamente via `speckit.porto.epic`), reaproveitar
 esse key como `epic_key` em vez de criar um novo Epic — evita duplicação quando o
-épico já foi materializado antes do plan. Exibir: `↪️  Reaproveitando Epic existente: CMEI-100`.
+épico já foi materializado antes do plan. Nesse caso, `project_key` (usado nas
+Stories e Sub-tasks dos passos 6 e 7) é derivado diretamente do prefixo de
+`epic_key` (ex: "CMEI-100" → `project_key = "CMEI"`), ignorando `--project` e
+`project.keys` — a hierarquia inteira deve viver no mesmo projeto do Epic
+reaproveitado. Exibir: `↪️  Reaproveitando Epic existente: CMEI-100`.
 
-Caso contrário, criar o Epic usando `jira_create_issue`:
-- `project_key`: `project.key` da config
+Caso contrário, resolver `project_key` nesta ordem antes de criar o Epic:
+
+1. `--project <KEY>` informado → usar diretamente, sem validar contra
+   `project.keys`.
+2. `project.keys` da config tem exatamente 1 item → usar essa key, sem perguntar.
+3. `project.keys` tem mais de 1 item → perguntar ao usuário qual key utilizar,
+   listando as opções configuradas (ex: "Em qual projeto Jira criar a
+   hierarquia? [CMEI, TES]"). Não assumir a primeira da lista.
+4. `project.keys` ausente ou vazio → exibir erro pedindo para configurar
+   `project.keys` em `porto-config.yml` e encerrar.
+
+Criar o Epic usando `jira_create_issue`:
+- `project_key`: key resolvida acima
 - `issue_type`: `hierarchy.epic_type` (ex: "Epic")
 - `summary`: título principal do spec.md (primeira linha H1)
 - `description`: conteúdo completo do spec.md formatado em Markdown
@@ -162,7 +183,7 @@ Combinar conteúdo da User Story correspondente (do passo 2) com a lista de task
 **6.2. Criar a Story**
 
 Usar `jira_create_issue`:
-- `project_key`: `project.key`
+- `project_key`: `project_key` resolvido no passo 5 (mesmo projeto do Epic)
 - `issue_type`: `hierarchy.story_type` (ex: "Story")
 - `summary`: título da Phase (ex: "Phase 1: Autenticação de Usuário")
 - `description`: descrição montada em 6.1
@@ -192,7 +213,7 @@ Se `hierarchy.task_type` não for `""` ou `"none"`:
 Para cada task em cada Phase:
 
 Usar `jira_create_issue`:
-- `project_key`: `project.key`
+- `project_key`: `project_key` resolvido no passo 5 (mesmo projeto do Epic)
 - `issue_type`: `hierarchy.task_type` (ex: "Sub-task")
 - `summary`: `<task_id>: <descrição>` (ex: "T001: Implementar endpoint de login")
 - `labels`: `defaults.task.labels`
