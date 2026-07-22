@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "porto"
   name: "Porto Jira Integration"
-  version: "1.0.0"
+  version: "1.1.0"
   description: "Integração Jira customizada para porto: stories ricas, workflow próprio e sync granular"
   author: "Paulo Henrique"
   license: "MIT"
